@@ -1,6 +1,6 @@
 imagebuilder/*
 !imagebuilder/.gitkeep
-output-images
+out*
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode
