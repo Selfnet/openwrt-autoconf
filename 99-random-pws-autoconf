@@ -8,7 +8,8 @@ uci set system.@button[-1].max="30"
 uci commit system
 
 # Configure network interfaces
-dhcp.lan.ignore="1"
+uci set dhcp.lan.ignore="1"
+uci commit dhcp
 
 uci set wireless.radio0.country="DE"
 uci set wireless.radio0.channel="auto"
