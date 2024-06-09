@@ -11,7 +11,6 @@ def parse_args():
         help="Output directory base for generated images",
         default="out",
     )
-    parser.add_argument("-p", "--ssid-prefix", help="SSID prefix", default="OpenWrt")
     parser.add_argument(
         "profile",
         help="OpenWrt profile, run 'make info' in imagebuilder directory to get a list of available profiles",

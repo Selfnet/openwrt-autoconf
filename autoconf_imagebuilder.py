@@ -5,18 +5,17 @@ import subprocess
 from pathlib import Path
 
 autoconf_template_file = "99-random-pws-autoconf"
-preinstalled_packages = ["luci", "luci-theme-openwrt-2020"]
+preinstalled_packages = ["luci"]
 
 
 class AutoconfImageBuilder:
     def __init__(self, args) -> None:
         self.openwrt_profile = args.profile
-        self.ssid_prefix = args.ssid_prefix
         self.imagebuilder_path = Path("imagebuilder")
         self.out_path = Path(args.output, self.openwrt_profile)
 
     def build_openwrt_image(self):
-        ssid = generate.ssid(self.ssid_prefix)
+        ssid = generate.ssid()
         wifi_password = generate.password(16)
         root_password = generate.password(8)
         self.outfilename_without_extension = f"openwrt_{ssid}"
@@ -47,6 +46,7 @@ class AutoconfImageBuilder:
                 [
                     "make",
                     "image",
+                    "-j8",
                     f"PROFILE={self.openwrt_profile}",
                     f"PACKAGES={' '.join(preinstalled_packages)}",
                     "FILES=files",

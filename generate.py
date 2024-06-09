@@ -7,13 +7,14 @@ import subprocess
 _alphanumeric = string.ascii_letters + string.digits
 
 
-def ssid(prefix):
+def ssid():
     with open("cities.txt", "r") as file:
         cities = file.readlines()
 
     city = secrets.choice(cities).strip()
+    postfix = "".join(secrets.choice(_alphanumeric) for _ in range(2))
 
-    return f"{prefix}-{city}"
+    return f"{city}-{postfix.upper()}"
 
 
 def password(length: int):
