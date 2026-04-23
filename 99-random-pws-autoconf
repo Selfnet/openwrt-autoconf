@@ -11,6 +11,7 @@ uci commit system
 uci set dhcp.lan.ignore="1"
 uci commit dhcp
 
+# 5 GHz
 uci set wireless.radio0.country="DE"
 uci set wireless.radio0.channel="auto"
 uci set wireless.radio0.disabled="0"
@@ -18,9 +19,11 @@ uci set wireless.@wifi-iface[0].ssid="{ssid}"
 uci set wireless.@wifi-iface[0].encryption="psk2"
 uci set wireless.@wifi-iface[0].key="{wifi_password}"
 
+# 2.5 GHz (limit TX power to reduce interference)
 uci set wireless.radio1.country="DE"
 uci set wireless.radio1.channel="auto"
 uci set wireless.radio1.disabled="0"
+uci set wireless.radio1.txpower="9"
 uci set wireless.@wifi-iface[1].ssid="{ssid}"
 uci set wireless.@wifi-iface[1].encryption="psk2"
 uci set wireless.@wifi-iface[1].key="{wifi_password}"
