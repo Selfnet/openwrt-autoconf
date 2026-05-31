@@ -17,7 +17,7 @@ class AutoconfImageBuilder:
     def build_openwrt_image(self):
         ssid = generate.ssid()
         wifi_password = generate.password(16)
-        root_password = generate.password(12)
+        root_password = generate.password(10)
         self.outfilename_without_extension = f"openwrt_{ssid}"
         self.out_path.mkdir(parents=True, exist_ok=True)
         self._generate_uci_defaults_file(ssid, wifi_password, root_password)
