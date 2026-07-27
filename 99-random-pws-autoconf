@@ -9,9 +9,13 @@ uci commit system
 
 # Configure network interfaces
 uci set dhcp.lan.ignore="1"
+uci set dhcp.lan.dhcpv4="disabled"
+uci set dhcp.lan.dhcpv6="disabled"
+uci set dhcp.lan.ra="disabled"
+uci set dhcp.lan.ndp="disabled"
 
 uci -q delete network.lan.ipaddr
-uci add_list network.lan.ipaddr='192.168.1.1/24'
+uci add_list network.lan.ipaddr="192.168.1.1/24"
 
 uci commit dhcp
 uci commit network
