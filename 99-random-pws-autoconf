@@ -1,12 +1,3 @@
-# Configure action on button press between 5 and 30 seconds: Reset to default configuration
-uci add system button
-uci set system.@button[-1].button="reset"
-uci set system.@button[-1].action="released"
-uci set system.@button[-1].handler="firstboot && reboot"
-uci set system.@button[-1].min="5"
-uci set system.@button[-1].max="30"
-uci commit system
-
 # Configure network interfaces
 uci set dhcp.lan.ignore="1"
 uci set dhcp.lan.dhcpv4="disabled"
