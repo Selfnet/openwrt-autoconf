@@ -1,3 +1,53 @@
+# Validate discovered radios before changing configuration.
+radio_2g=
+radio_5g=
+index=0
+while uci -q get "wireless.@wifi-device[$index]" >/dev/null; do
+    radio="@wifi-device[$index]"
+    band=$(uci -q get "wireless.$radio.band") || exit 1
+    case "$band" in
+        2g)
+            [ -z "$radio_2g" ] || exit 1
+            radio_2g=$radio
+            ;;
+        5g)
+            [ -z "$radio_5g" ] || exit 1
+            radio_5g=$radio
+            ;;
+        *)
+            echo "Unexpected wireless band: $band" >&2
+            exit 1
+            ;;
+    esac
+    index=$((index + 1))
+done
+if [ -z "$radio_2g" ] || [ -z "$radio_5g" ]; then
+    echo "Expected one 2.4 GHz radio and one 5 GHz radio" >&2
+    exit 1
+fi
+
+ifaces_2g=
+ifaces_5g=
+index=0
+while uci -q get "wireless.@wifi-iface[$index]" >/dev/null; do
+    iface="@wifi-iface[$index]"
+    mode=$(uci -q get "wireless.$iface.mode") || exit 1
+    if [ "$mode" = "ap" ]; then
+        device=$(uci -q get "wireless.$iface.device") || exit 1
+        band=$(uci -q get "wireless.$device.band") || exit 1
+        case "$band" in
+            2g) ifaces_2g="$ifaces_2g $iface" ;;
+            5g) ifaces_5g="$ifaces_5g $iface" ;;
+            *) exit 1 ;;
+        esac
+    fi
+    index=$((index + 1))
+done
+if [ -z "$ifaces_2g" ] || [ -z "$ifaces_5g" ]; then
+    echo "Expected an AP interface on each band" >&2
+    exit 1
+fi
+
 # Configure network interfaces
 uci set dhcp.lan.ignore="1"
 uci set dhcp.lan.dhcpv4="disabled"
@@ -29,26 +79,30 @@ uci commit dhcp
 uci commit network
 uci commit firewall
 
-# 5 GHz
-uci set wireless.radio0.country="DE"
-uci set wireless.radio0.channel="auto"
-uci set wireless.radio0.disabled="0"
-uci set wireless.default_radio0.ssid="{ssid}"
-uci set wireless.default_radio0.encryption="psk2"
-uci set wireless.default_radio0.key="{wifi_password}"
-uci set wireless.default_radio0.disabled="0"
+for radio in "$radio_2g" "$radio_5g"; do
+    uci set "wireless.$radio.country=DE" || exit 1
+    uci set "wireless.$radio.channel=auto" || exit 1
+    uci set "wireless.$radio.disabled=0" || exit 1
+done
 
-# 2.5 GHz (limit TX power to reduce interference)
-uci set wireless.radio1.country="DE"
-uci set wireless.radio1.channel="auto"
-uci set wireless.radio1.disabled="0"
-uci set wireless.radio1.txpower="9"
-uci set wireless.default_radio1.ssid="{ssid}"
-uci set wireless.default_radio1.encryption="psk2"
-uci set wireless.default_radio1.key="{wifi_password}"
-uci set wireless.default_radio1.disabled="0"
+# Room-scale 2.4 GHz baseline; retain DFS-capable ACS on 5 GHz.
+uci set "wireless.$radio_2g.htmode=HT20" || exit 1
+uci set "wireless.$radio_2g.txpower=9" || exit 1
+if uci -q get "wireless.$radio_2g.chanlist" >/dev/null; then
+    uci delete "wireless.$radio_2g.chanlist" || exit 1
+fi
+for channel in 1 6 11; do
+    uci add_list "wireless.$radio_2g.chanlist=$channel" || exit 1
+done
 
-uci commit wireless
+for iface in $ifaces_2g $ifaces_5g; do
+    uci set "wireless.$iface.ssid={ssid}" || exit 1
+    uci set "wireless.$iface.encryption=psk2" || exit 1
+    uci set "wireless.$iface.key={wifi_password}" || exit 1
+    uci set "wireless.$iface.disabled=0" || exit 1
+done
+
+uci commit wireless || exit 1
 
 # Set root password
 (
