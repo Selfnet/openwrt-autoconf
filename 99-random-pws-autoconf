@@ -8,8 +8,26 @@ uci set dhcp.lan.ndp="disabled"
 uci -q delete network.lan.ipaddr
 uci add_list network.lan.ipaddr="192.168.1.1/24"
 
+# DHCP management on the same bridge as the static debugging address
+uci set network.lan_dhcp="interface"
+uci set network.lan_dhcp.device="@lan"
+uci set network.lan_dhcp.proto="dhcp"
+uci set network.lan_dhcp.defaultroute="1"
+uci set network.lan_dhcp.peerdns="1"
+
+zone=0
+while name=$(uci -q get "firewall.@zone[$zone].name"); do
+    if [ "$name" = "lan" ]; then
+        uci -q del_list "firewall.@zone[$zone].network=lan_dhcp"
+        uci add_list "firewall.@zone[$zone].network=lan_dhcp"
+        break
+    fi
+    zone=$((zone + 1))
+done
+
 uci commit dhcp
 uci commit network
+uci commit firewall
 
 # 5 GHz
 uci set wireless.radio0.country="DE"
